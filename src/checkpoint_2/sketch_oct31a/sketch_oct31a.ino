@@ -13,7 +13,12 @@ const byte IA2 = 5; // 馬達 A 的反轉接腳
 const byte EB = 10; // 馬達 B 的接腳
 const byte IB1 = 6; // 馬達 B 的正轉接腳
 const byte IB2 = 7; // 馬達 B 的反轉接腳
+#define PIN_LIGHT A3
+unsigned long t_stamp;
+const int INTERVEL_LIGHT_MS = 500;
 
+std_msgs::Int16 light_msg;
+ros::Publisher pub_light_val("light_value", &light_msg);
 
 void messageCb1( const std_msgs::Int16& arg1){
   speed1 = arg1.data;
@@ -48,7 +53,11 @@ else{
     analogWrite(EA, abs(speed1)); // 馬達 A 的 PWM 輸出
     analogWrite(EB, abs(speed2)); // 馬達 B 的 PWM 輸出
 
-
+if((millis() -t_stamp) > INTERVEL_LIGHT_MS){
+    light_msg.data = analogRead(PIN_LIGHT);
+    pub_light_val.publish(&light_msg);
+    t_stamp = millis();
+  }
 
 
 }
@@ -66,6 +75,8 @@ pinMode(IB2, OUTPUT);
 nh.initNode();
 nh.subscribe(sub1);
 nh.subscribe(sub2);
+nh.advertise(pub_light_val);
+t_stamp = millis();
 }
 
 void loop() {
